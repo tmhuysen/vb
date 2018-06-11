@@ -25,9 +25,20 @@ public:
     const bmqc::AddressingScheme addressing_scheme_alpha;
     const bmqc::AddressingScheme addressing_scheme_beta;
 
+
+    Eigen::MatrixXd oei;
+    Eigen::Tensor<double,4> tei;
+    Eigen::MatrixXd oi;
+
+    Eigen::MatrixXd hamiltonian_alpha;
+    Eigen::MatrixXd hamiltonian_beta;
     Eigen::MatrixXd hamiltonian;
+
+    Eigen::MatrixXd overlap_alpha;
+    Eigen::MatrixXd overlap_beta;
     Eigen::MatrixXd overlap;
 
+    void calculate_element(size_t one_string, size_t two_string, size_t index_one, size_t index_two);
 
     // CONSTRUCTORS
     /**
@@ -49,7 +60,7 @@ public:
     /**
      *  Calculates the overlap Matrix (overlap) and the (non-orthogonalized) Hamiltonian (hamiltonian)
      */
-    void calculate_matrices();
+    void calculate_matrices_alpha();
 };
 
 }  // namespace vb
