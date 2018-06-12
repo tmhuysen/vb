@@ -38,7 +38,15 @@ public:
     Eigen::MatrixXd overlap_beta;
     Eigen::MatrixXd overlap;
 
-    void calculate_element(size_t one_string, size_t two_string, size_t index_one, size_t index_two);
+
+    size_t index_one;
+    size_t index_two;
+
+
+    void calculate_element_alpha(size_t one_string, size_t two_string,size_t index_one, size_t index_two);
+    void calculate_element_beta(size_t one_string, size_t two_string,size_t index_one, size_t index_two);
+    void calculate_element(size_t aone_string, size_t atwo_string, size_t bone_string, size_t btwo_string, size_t index_one, size_t index_two);
+    double calculate_overlap(size_t aone_string, size_t atwo_string);
 
     // CONSTRUCTORS
     /**
@@ -60,7 +68,9 @@ public:
     /**
      *  Calculates the overlap Matrix (overlap) and the (non-orthogonalized) Hamiltonian (hamiltonian)
      */
-    void calculate_matrices_alpha();
+    void calculate_matrices();
+    void finish_off();
+    double solve();
 };
 
 }  // namespace vb

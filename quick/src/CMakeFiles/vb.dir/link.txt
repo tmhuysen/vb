@@ -1,0 +1,2 @@
+/opt/local/bin/ar qc libvb.a  CMakeFiles/vb.dir/CompleteVB.cpp.o
+/opt/local/bin/ranlib libvb.a
