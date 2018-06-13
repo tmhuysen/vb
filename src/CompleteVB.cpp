@@ -9,6 +9,7 @@ CompleteVB::CompleteVB(libwint::AOBasis& ao_basis, size_t N_A, size_t N_B):
         dim_alpha (CompleteVB::calculateDimension(ao_basis.calculateNumberOfBasisFunctions(), N_A, 0)),
         dim_beta (CompleteVB::calculateDimension(ao_basis.calculateNumberOfBasisFunctions(), 0, N_B)),
         dim(CompleteVB::calculateDimension(ao_basis.calculateNumberOfBasisFunctions(), N_A, N_B)) {
+
     this->oei = ao_basis.get_T()+ao_basis.get_V();
     this->oi = ao_basis.get_S();
     this->tei = ao_basis.get_g();
@@ -17,61 +18,44 @@ CompleteVB::CompleteVB(libwint::AOBasis& ao_basis, size_t N_A, size_t N_B):
     this->hamiltonian_alpha = Eigen::MatrixXd::Zero(dim_alpha,dim_alpha);
     this->overlap_alpha = Eigen::MatrixXd::Zero(dim_alpha,dim_alpha);
     this->overlap_beta = Eigen::MatrixXd::Zero(dim_beta,dim_beta);
+
+
 }
 
 void CompleteVB::calculate_matrices() {
     overlap = Eigen::MatrixXd::Zero(dim,dim);
     hamiltonian = Eigen::MatrixXd::Zero(dim,dim);
 
-
     bmqc::SpinString<unsigned long> ssa_one (0, this->addressing_scheme_alpha);  // alpha spin string with address 0
     for (size_t I_alpha = 0; I_alpha < this->dim_alpha; I_alpha++) {
         bmqc::SpinString<unsigned long> ssa_two (0, this->addressing_scheme_alpha);  // alpha spin string with address 0
         for (size_t J_alpha = 0; J_alpha < this->dim_alpha; J_alpha++){
-            calculate_element_alpha(ssa_one.get_representation(), ssa_two.get_representation(), I_alpha, J_alpha);
-
-
+            calculate_separated_elements(ssa_one.get_representation(), ssa_two.get_representation(), I_alpha, J_alpha,this->overlap_alpha,this->hamiltonian_alpha);
             // BETA-ALPHA
             bmqc::SpinString<unsigned long> ssa_2one (0, this->addressing_scheme_beta);  // beta spin string with address 0
             for (size_t I_beta = 0; I_beta < this->dim_beta; I_beta++) {
                 bmqc::SpinString<unsigned long> ssa_2two (0, this->addressing_scheme_beta);  // beta spin string with address 0
                 for (size_t J_beta = 0; J_beta < this->dim_beta; J_beta++) {
-                    calculate_element(ssa_one.get_representation(), ssa_two.get_representation(),ssa_2one.get_representation(), ssa_2two.get_representation(), this->dim_beta*I_alpha + I_beta, this->dim_beta*J_alpha+J_beta);
+                    calculate_mixed_elements(ssa_one.get_representation(), ssa_two.get_representation(),
+                                             ssa_2one.get_representation(), ssa_2two.get_representation(),
+                                             this->dim_beta * I_alpha + I_beta, this->dim_beta * J_alpha + J_beta);
                     ssa_2two.nextPermutation();
                 }
                 ssa_2one.nextPermutation();
             }
-
-
-
-
-
             ssa_two.nextPermutation();
-
-
-
         }
         ssa_one.nextPermutation();
     }
-
-
     bmqc::SpinString<unsigned long> ssa_2one (0, this->addressing_scheme_beta);  // beta spin string with address 0
     for (size_t I_beta = 0; I_beta < this->dim_beta; I_beta++) {
         bmqc::SpinString<unsigned long> ssa_2two (0, this->addressing_scheme_beta);  // beta spin string with address 0
         for (size_t J_beta = 0; J_beta < this->dim_beta; J_beta++){
-            calculate_element_beta(ssa_2one.get_representation(), ssa_2two.get_representation(), I_beta, J_beta);
+            calculate_separated_elements(ssa_2one.get_representation(), ssa_2two.get_representation(), I_beta, J_beta,this->overlap_beta,this->hamiltonian_beta);
             ssa_2two.nextPermutation();
-
-
-
         }
         ssa_2one.nextPermutation();
     }
-
-
-
-
-
 }
 
 size_t CompleteVB::calculateDimension(size_t K, size_t N_alpha, size_t N_beta) {
@@ -84,183 +68,6 @@ size_t CompleteVB::calculateDimension(size_t K, size_t N_alpha, size_t N_beta) {
     return boost::numeric::converter<double, size_t>::convert(dim_double);
 }
 
-void CompleteVB::calculate_element_alpha(size_t one_string, size_t two_string, size_t index_one, size_t index_two) {
-    // Initialize a matrix t
-    Eigen::MatrixXd determinant_overlap = Eigen::MatrixXd::Zero(this->N_alpha,this->N_alpha);
-    Eigen::MatrixXd determinant_one = Eigen::MatrixXd::Zero(this->N_alpha,this->N_alpha);
-    Eigen::MatrixXd determinant_two = Eigen::MatrixXd::Zero(this->N_alpha,this->N_alpha);
-    size_t outerdex = 0;
-    size_t copy_one = one_string;
-    while (copy_one != 0) {
-        size_t innerdex = 0;
-        size_t p = __builtin_ctzl(copy_one);
-        size_t copy_two = two_string;
-        while (copy_two != 0){
-            size_t q = __builtin_ctzl(copy_two);
-            determinant_overlap(innerdex,outerdex) += this->oi(p,q);
-            if(outerdex==0){
-                determinant_one(innerdex,outerdex) += this->oei(p,q);
-
-            }else{
-                determinant_one(innerdex,outerdex) += this->oi(p,q);
-            }
-
-            innerdex++;
-            copy_two ^= (copy_two & -copy_two);
-
-        }
-        outerdex++;
-        copy_one ^= (copy_one & -copy_one);
-    }
-
-    this->hamiltonian_alpha(index_one,index_two) = determinant_one.determinant();
-    this->overlap_alpha(index_one,index_two) = determinant_overlap.determinant();
-
-
-    size_t copy1 = one_string;
-    int sign1 = 1;
-    while (copy1 != 0) {
-        int sign2 = sign1;
-        size_t p = __builtin_ctzl(copy1);
-        size_t copy2 = one_string;
-        while (copy2 != 0){
-            int sign3 = sign2;
-            size_t q = __builtin_ctzl(copy2);
-            size_t copy3 = two_string;
-            while(copy3 !=0){
-                int sign4 = sign3;
-                size_t r = __builtin_ctzl(copy3);
-                size_t copy4 = two_string;
-                while(copy4 != 0){
-                    size_t s = __builtin_ctzl(copy4);
-
-
-                    if(p == q || r == s){
-
-                    }else{
-                        size_t aone = one_string - (1<<p) - (1<<q);
-                        size_t atwo = two_string - (1<<s) - (1<<r);
-                        double overlaps = calculate_overlap(aone,atwo);
-                        hamiltonian_alpha(index_one,index_two) += sign4*overlaps*tei(p,s,q,r)/2*0;
-
-                    }
-                    copy4 ^= (copy4 & -copy4);
-                    if(s<r){
-                        sign4 *=-1;
-                    }
-
-                }
-
-                sign3 *=-1;
-                copy3 ^= (copy3 & -copy3);
-            }
-            if(p<q){
-                sign2 *= -1;
-            }
-            copy2 ^= (copy2 & -copy2);
-
-        }
-        sign1 *= -1;
-        copy1 ^= (copy1 & -copy1);
-    }
-
-
-
-}
-
-
-void CompleteVB::calculate_element_beta(size_t one_string, size_t two_string, size_t index_one, size_t index_two) {
-    // Initialize a matrix t
-    Eigen::MatrixXd determinant_overlap = Eigen::MatrixXd::Zero(this->N_beta,this->N_beta);
-    Eigen::MatrixXd determinant_one = Eigen::MatrixXd::Zero(this->N_beta,this->N_beta);
-    Eigen::MatrixXd determinant_two = Eigen::MatrixXd::Zero(this->N_beta,this->N_beta);
-    size_t outerdex = 0;
-    size_t copy_one = one_string;
-    while (copy_one != 0) {
-        size_t innerdex = 0;
-        size_t p = __builtin_ctzl(copy_one);
-        size_t copy_two = two_string;
-        while (copy_two != 0){
-            size_t q = __builtin_ctzl(copy_two);
-            determinant_overlap(innerdex,outerdex) = this->oi(p,q);
-            if(outerdex==0){
-                determinant_one(innerdex,outerdex) = this->oei(p,q);
-
-            }else{
-                determinant_one(innerdex,outerdex) = this->oi(p,q);
-            }
-
-            innerdex++;
-            copy_two ^= (copy_two & -copy_two);
-
-        }
-        outerdex++;
-        copy_one ^= (copy_one & -copy_one);
-    }
-
-    this->hamiltonian_beta(index_one,index_two) = determinant_one.determinant();
-    this->overlap_beta(index_one,index_two) = determinant_overlap.determinant();
-
-
-    size_t copy1 = one_string;
-    int sign1 = 1;
-    while (copy1 != 0) {
-        int sign2 = sign1;
-        size_t p = __builtin_ctzl(copy1);
-        size_t copy2 = one_string;
-        while (copy2 != 0){
-            int sign3 = sign2;
-            size_t q = __builtin_ctzl(copy2);
-            size_t copy3 = two_string;
-            while(copy3 !=0){
-                int sign4 = sign3;
-                size_t r = __builtin_ctzl(copy3);
-                size_t copy4 = two_string;
-                while(copy4 != 0){
-                    size_t s = __builtin_ctzl(copy4);
-
-
-                    if(p == q || r == s){
-
-                    }else{
-                        size_t aone = (one_string - (1<<p)) - (1<<q);
-                        size_t atwo = (two_string - (1<<s)) - (1<<r);
-                        double overlaps = calculate_overlap(aone,atwo);
-                        std::cout<<-sign4<<" "<<p<<" "<<q<<" "<<r<<" "<<s<<std::endl;
-                        hamiltonian_beta(index_one,index_two) += -sign4*overlaps*tei(s,p,r,q)/2;
-                        hamiltonian_alpha(index_one,index_two) += -sign4*overlaps*tei(p,s,q,r)/2;
-
-                    }
-                    copy4 ^= (copy4 & -copy4);
-                    if(s>r){
-                        sign4 *=-1;
-
-                    }else{
-                        //sign4 *= sign3;
-                    }
-
-                }
-
-                sign3 *=-1;
-                copy3 ^= (copy3 & -copy3);
-            }
-            if(p<q){
-                sign2 *= -1;
-            }else{
-                //sign2 = sign2*sign1;
-            }
-            copy2 ^= (copy2 & -copy2);
-
-        }
-        sign1 *= -1;
-        copy1 ^= (copy1 & -copy1);
-    }
-
-
-
-
-
-}
 
 void CompleteVB::finish_off() {
     for(int i = 0;i<this->dim_alpha;i++){
@@ -280,13 +87,12 @@ double CompleteVB::solve() {
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver2(this->overlap);
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver3(solver2.operatorInverseSqrt()*this->hamiltonian*solver2.operatorInverseSqrt());
 
-    std::cout<<eigen_solver.eigenvalues().rows();
     return eigen_solver.eigenvalues()(0);
 }
 
-void CompleteVB::calculate_element(size_t aone_string, size_t atwo_string, size_t bone_string, size_t btwo_string,
-                                   size_t index_one, size_t index_two) {
-
+void CompleteVB::calculate_mixed_elements(size_t aone_string, size_t atwo_string, size_t bone_string,
+                                          size_t btwo_string,
+                                          size_t index_one, size_t index_two) {
     // Initialize a matrix t
     // Eigen::MatrixXd determinant_two = Eigen::MatrixXd::Zero(this->N_beta,this->N_beta);
     size_t copy1 = aone_string;
@@ -313,7 +119,7 @@ void CompleteVB::calculate_element(size_t aone_string, size_t atwo_string, size_
                     size_t btwo = btwo_string - (1<<r);
                     size_t atwo = atwo_string - (1<<s);
 
-                    double overlaps = calculate_overlap(aone,atwo)*calculate_overlap(bone,btwo);
+                    double overlaps = calculate_overlap(aone, atwo)* calculate_overlap(bone, btwo);
                     hamiltonian(index_one,index_two) += sign4*overlaps*tei(p,s,q,r);
 
 
@@ -357,18 +163,111 @@ double CompleteVB::calculate_overlap(size_t one_string, size_t two_string) {
                 determinant(innerdex,outerdex) = this->oi(p,q);
                 innerdex++;
                 copy_two ^= (copy_two & -copy_two);
-
             }
             outerdex++;
             copy_one ^= (copy_one & -copy_one);
         }
-
         overlaps = determinant.determinant();
-
     }
 
 
 
     return overlaps;
+}
+
+void CompleteVB::calculate_separated_elements(size_t one_string, size_t two_string, size_t index_one, size_t index_two,
+                                              Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian) {
+    
+    // Calculate the amount of electrons for the string
+    size_t N = __builtin_popcount(one_string);
+    
+    // Initialize the overlap determinant
+    Eigen::MatrixXd determinant_overlap = Eigen::MatrixXd::Zero(N,N);
+    
+    // Initialize the one-electron integral determinants (one determinant for each electron)
+    std::vector<Eigen::MatrixXd> determinants(N);
+    for(int i = 0;i<N;i++){
+        determinants[i] = Eigen::MatrixXd::Zero(N,N);
+    }
+
+    size_t row_index = 0;  // Index related the determinant matrices
+    size_t copy_one = one_string;  // copy bitstring
+
+    while (copy_one != 0) {
+        size_t column_index = 0;  // Index related the determinant matrices
+        size_t p = __builtin_ctzl(copy_one);  // Index of the overlap or electron operator
+        size_t copy_two = two_string;
+        while (copy_two != 0){
+            size_t q = __builtin_ctzl(copy_two);  // Index of the overlap or electron operator
+            determinant_overlap(row_index,column_index) += this->oi(p,q);  // The determinant for the overlap matrix
+            for(int i = 0;i<this->N_alpha;i++){
+                if(row_index == i){
+                    determinants[i](row_index,column_index) += oei(p,q);  // Fill one row with one electron-operator evaluations.
+                }else{
+                    determinants[i](row_index,column_index) += this->oi(p,q);  // Fill the rest of the rows with overlap terms
+                }
+            }
+            column_index++;
+            copy_two ^= (copy_two & -copy_two);  // least significant bit removal.
+        }
+        row_index++;
+        copy_one ^= (copy_one & -copy_one);  // least significant bit removal.
+    }
+
+    // Calculate the determinants and add them to the corresponding indexes
+    for(const Eigen::MatrixXd &x:determinants){
+        hamiltonian(index_one,index_two) += x.determinant();
+    }
+
+    // Add the overlap
+    overlap(index_one,index_two) = determinant_overlap.determinant();
+
+    // Two-electron part perform two annihilations on one_string and two_string, we can do this because all strings will couple (non-orthogonality).
+    size_t copy1 = one_string;
+    while (copy1 != 0) {
+        int sign2 = 1; // first sign is always positive because sign with first annihilation is always the same for the annihilation directly afterwards (-1*-1 or 1*1 = 1)
+        size_t p = __builtin_ctzl(copy1);  // Get operator index
+        copy1 ^= (copy1 & -copy1);
+        size_t copy2 = copy1;  // Annihilate only indexes bigger than previous annihilation
+        while (copy2 != 0){
+            int sign3 = sign2;  // Take over current sign (again no sign change for the first anni on the two_string)
+            size_t q = __builtin_ctzl(copy2);  // Get operator index
+            size_t copy3 = two_string;
+            while(copy3 !=0){
+                int sign4 = sign3;
+                size_t r = __builtin_ctzl(copy3);  // Get operator index
+                copy3 ^= (copy3 & -copy3);
+                size_t copy4 = copy3;
+                while(copy4 != 0){
+                    size_t s = __builtin_ctzl(copy4);  // Get operator index
+
+                    // Remove annihilated indexes for the remaining overlap strings
+                    size_t aone = (one_string - (1<<p)) - (1<<q);
+                    size_t atwo = (two_string - (1<<s)) - (1<<r);
+                    double overlaps = calculate_overlap(aone, atwo);
+
+                    // We only do secondary annihilations, the opposite order results in a sign change (3rd and 4th term include one switch) dubble opposite order for both strings results in a positive again (2nd term).
+                    double term = tei(p,r,q,s) + tei(q,s,p,r) - tei(q,r,p,s) - tei(p,s,q,r);
+                    hamiltonian(index_one,index_two) += sign4*overlaps*term/2;
+
+                    copy4 ^= (copy4 & -copy4);
+                    sign4 *=-1;  // For subsequent secondary annihilations change the sign.
+                }
+
+            }
+
+            sign2 *= -1; // For subsequent secondary annihilations change the sign.
+
+            copy2 ^= (copy2 & -copy2);
+        }
+
+    }
+
+
+
+
+
+
+
 }
 }  // namespace vb

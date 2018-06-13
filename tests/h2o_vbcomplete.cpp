@@ -7,14 +7,18 @@
 
 
 BOOST_AUTO_TEST_CASE ( H2O_complete_vb ) {
-    // LiH FCI calculation GQCG
-    double reference_energy = -7.88253;
+    // Psi4 and GAMESS' FCI energy
+    double reference_energy = -75.0129803939602;
 
-    libwint::Molecule LiH("../../tests/data/h2o.xyz");
-    libwint::AOBasis ao_basis(LiH,"STO-3G");
+    libwint::Molecule H2O("../../tests/data/h2o.xyz");
+    libwint::AOBasis ao_basis(H2O,"STO-3G");
     ao_basis.calculateIntegrals();
     vb::CompleteVB vb (ao_basis,5,5);
-    std::cout<<vb.solve()+LiH.calculateInternuclearRepulsionEnergy();
+
+    double internuclear_repulsion = H2O.calculateInternuclearRepulsionEnergy();
+    double energy = vb.solve() + internuclear_repulsion;
+
+    BOOST_CHECK(std::abs(energy-reference_energy)<1.0e-6);
 
 }
 

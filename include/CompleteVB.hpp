@@ -25,7 +25,6 @@ public:
     const bmqc::AddressingScheme addressing_scheme_alpha;
     const bmqc::AddressingScheme addressing_scheme_beta;
 
-
     Eigen::MatrixXd oei;
     Eigen::Tensor<double,4> tei;
     Eigen::MatrixXd oi;
@@ -38,14 +37,9 @@ public:
     Eigen::MatrixXd overlap_beta;
     Eigen::MatrixXd overlap;
 
-
-    size_t index_one;
-    size_t index_two;
-
-
-    void calculate_element_alpha(size_t one_string, size_t two_string,size_t index_one, size_t index_two);
-    void calculate_element_beta(size_t one_string, size_t two_string,size_t index_one, size_t index_two);
-    void calculate_element(size_t aone_string, size_t atwo_string, size_t bone_string, size_t btwo_string, size_t index_one, size_t index_two);
+    void calculate_separated_elements(size_t one_string, size_t two_string,size_t index_one, size_t index_two, Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian);
+    void calculate_mixed_elements(size_t aone_string, size_t atwo_string, size_t bone_string, size_t btwo_string,
+                                  size_t index_one, size_t index_two);
     double calculate_overlap(size_t aone_string, size_t atwo_string);
 
     // CONSTRUCTORS

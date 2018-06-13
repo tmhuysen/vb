@@ -7,18 +7,18 @@
 
 
 BOOST_AUTO_TEST_CASE ( h2_complete_vb ) {
-    // LiH FCI calculation GQCG
-    double reference_energy = -7.88253;
+    // Cristina's H2 FCI energy/OO-DOCI energy
+    double reference_energy = -1.1651486697;
 
-    libwint::Molecule H2("../../tests/data/h2.xyz");
-    libwint::AOBasis ao_basis(H2,"STO-3G");
+    libwint::Molecule H2("../../tests/data/h2_cristina.xyz");
+    libwint::AOBasis ao_basis(H2,"6-31g**");
     ao_basis.calculateIntegrals();
     vb::CompleteVB vb (ao_basis,1,1);
-    std::cout<<vb.solve()+H2.calculateInternuclearRepulsionEnergy();
-    std::cout<<std::endl<<std::endl<<vb.hamiltonian<<std::endl<<std::endl;
-    std::cout<<vb.overlap<<std::endl<<std::endl;
-    std::cout<<vb.overlap_alpha<<std::endl<<std::endl;
-    std::cout<<vb.overlap_beta<<std::endl<<std::endl;
+
+    double internuclear_repulsion = H2.calculateInternuclearRepulsionEnergy();
+    double energy = vb.solve() + internuclear_repulsion;
+
+    BOOST_CHECK(std::abs(energy-reference_energy)<1.0e-6);
 
 }
 

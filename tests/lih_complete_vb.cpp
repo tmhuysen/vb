@@ -14,7 +14,10 @@ BOOST_AUTO_TEST_CASE ( lih_complete_vb ) {
     libwint::AOBasis ao_basis(LiH,"STO-3G");
     ao_basis.calculateIntegrals();
     vb::CompleteVB vb (ao_basis,2,2);
-    std::cout<<vb.solve()+LiH.calculateInternuclearRepulsionEnergy();
+    double internuclear_repulsion = LiH.calculateInternuclearRepulsionEnergy();
+    double energy = vb.solve() + internuclear_repulsion;
+
+    BOOST_CHECK(std::abs(energy-reference_energy)<1.0e-6);
 
 }
 
