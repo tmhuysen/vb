@@ -10,8 +10,7 @@
 namespace vb {
 
 class CompleteVB {
-public:
-    // Public Member Variables : Developmental Stage TODO: Change
+private:
     libwint::AOBasis ao_basis;
     const size_t dim;
     const size_t dim_alpha;  // the dimension of the alpha CI space
@@ -21,9 +20,6 @@ public:
 
     const size_t N_alpha;  // number of alpha electrons
     const size_t N_beta;  // number of beta electrons
-
-    const bmqc::AddressingScheme addressing_scheme_alpha;
-    const bmqc::AddressingScheme addressing_scheme_beta;
 
     Eigen::MatrixXd oei;
     Eigen::Tensor<double,4> tei;
@@ -51,14 +47,30 @@ public:
     std::vector<std::vector<OneElectronCoupling>> boec;
 
 
+    /**
+     *  All calculations from the perspective of one of the spin functions (no mixing)
+     */
+    void calculate_separated_elements(size_t string_state_one, size_t string_state_two,size_t address_state_one, size_t address_state_two, Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian, std::vector<std::vector<OneElectronCoupling>>& coupling);
 
-    void calculate_separated_elements(size_t one_string, size_t two_string,size_t index_one, size_t index_two, Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian, std::vector<std::vector<OneElectronCoupling>>& coupling);
-    void calculate_mixed_elements(size_t aone_string, size_t atwo_string, size_t bone_string, size_t btwo_string,
-                                  size_t index_one, size_t index_two);
-    void mixer();
-    double calculate_overlap(size_t aone_string, size_t atwo_string);
+    /**
+     *  All calculations exclusive to both the perspectives of the spin functions (mixing, only in two-electron terms)
+     */
+    void calculate_two_electron_mixed_elements();
 
+    /**
+     *  Calculates the overlap for two given states (possibly after operator evaluation)
+     */
+    double calculate_overlap(size_t string_state_one, size_t string_state_two);
+
+    /**
+     *  Calculates the overlap Matrix (overlap) and the (non-orthogonalized) Hamiltonian (hamiltonian)
+     */
+    void calculate_matrices();
+
+
+public:
     // CONSTRUCTORS
+
     /**
      *  Constructor based on a given @param ao_basis, a number of alpha electrons @param N_alpha and a number of beta electrons
      *  @param N_beta.
@@ -66,8 +78,8 @@ public:
     CompleteVB(libwint::AOBasis &ao_basis, size_t N_A, size_t N_B);
 
 
-
     // STATIC PUBLIC METHODS
+
     /**
      *  Given a number of spatial orbitals @param K, a number of alpha electrons @param N_A, and a number of beta electrons
      *  @param N_B, @return the dimension of the FCI space.
@@ -76,21 +88,15 @@ public:
 
 
     // PUBLIC METHODS
+
     /**
-     *  Calculates the overlap Matrix (overlap) and the (non-orthogonalized) Hamiltonian (hamiltonian)
-     */
-    void calculate_matrices();
-
-    /*
-     *  Recombines alpha and beta separated calculations
-     */
-    void finish_off();
-
-    /*
-     * Solves
+     * Solves the complete VB (non-orthognal fci) problem.
      */
     double solve();
 };
 
 }  // namespace vb
+
+
+
 #endif //VB_COMPLETEVB_HPP
