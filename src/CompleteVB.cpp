@@ -26,7 +26,6 @@ CompleteVB::CompleteVB(libwint::AOBasis& ao_basis, size_t N_A, size_t N_B):
         as[i] = ssa_a.get_representation();
         ssa_a.nextPermutation();
     }
-
     this->bs = std::vector<size_t>(dim_beta);
 
     bmqc::SpinString<unsigned long> ssa_b (0, this->addressing_scheme_beta);
@@ -34,38 +33,21 @@ CompleteVB::CompleteVB(libwint::AOBasis& ao_basis, size_t N_A, size_t N_B):
         bs[i] = ssa_b.get_representation();
         ssa_b.nextPermutation();
     }
-
     this->aoec = std::vector<std::vector<OneElectronCoupling>>(dim_alpha);
     this->boec = std::vector<std::vector<OneElectronCoupling>>(dim_beta);
-
 
 }
 
 void CompleteVB::calculate_matrices() {
     overlap = Eigen::MatrixXd::Zero(dim,dim);
     hamiltonian = Eigen::MatrixXd::Zero(dim,dim);
-    auto start2 = std::chrono::high_resolution_clock::now();
 
     for (size_t I_alpha = 0; I_alpha < this->dim_alpha; I_alpha++) {
         for (size_t J_alpha = 0; J_alpha < this->dim_alpha; J_alpha++){
             calculate_separated_elements(as[I_alpha], as[J_alpha], I_alpha, J_alpha,this->overlap_alpha,this->hamiltonian_alpha,aoec);
-            /*
-            for (size_t I_beta = 0; I_beta < this->dim_beta; I_beta++) {
-                for (size_t J_beta = 0; J_beta < this->dim_beta; J_beta++){
-                    calculate_mixed_elements(as[I_alpha], as[J_alpha],bs[I_beta], bs[J_beta], I_alpha*dim_beta+I_beta, J_alpha*dim_beta+J_beta);
-                }
-            }
-             */
-
-
         }
     }
-    auto stop2 = std::chrono::high_resolution_clock::now();
 
-    // Process the chrono time and output
-    auto elapsed_time2 = stop2 - start2;           // in nanoseconds
-    auto seconds2 = elapsed_time2.count() / 1e9;  // in seconds
-    std::cout << "finnish swedish" << " : " << seconds2 << std::endl;
     for (size_t I_beta = 0; I_beta < this->dim_beta; I_beta++) {
         for (size_t J_beta = 0; J_beta < this->dim_beta; J_beta++){
             calculate_separated_elements(bs[I_beta], bs[J_beta], I_beta, J_beta,this->overlap_beta,this->hamiltonian_beta,boec);
@@ -93,86 +75,19 @@ void CompleteVB::finish_off() {
             hamiltonian.block(i*dim_beta,j*dim_beta,dim_beta,dim_beta) += hamiltonian_alpha(i,j)*overlap_beta;
         }
     }
-    auto start2 = std::chrono::high_resolution_clock::now();
     mixer();
-    auto stop2 = std::chrono::high_resolution_clock::now();
-
-    // Process the chrono time and output
-    auto elapsed_time2 = stop2 - start2;           // in nanoseconds
-    auto seconds2 = elapsed_time2.count() / 1e9;  // in seconds
-    std::cout << "finnish swedish" << " : " << seconds2 << std::endl;
 }
 
 double CompleteVB::solve() {
     calculate_matrices();
     finish_off();
     Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> eigen_solver (this->hamiltonian, this->overlap);
-
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver2(this->overlap);
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver3(solver2.operatorInverseSqrt()*this->hamiltonian*solver2.operatorInverseSqrt());
-
     return eigen_solver.eigenvalues()(0);
 }
 
-void CompleteVB::calculate_mixed_elements(size_t aone_string, size_t atwo_string, size_t bone_string,
-                                          size_t btwo_string,
-                                          size_t index_one, size_t index_two) {
-    // Initialize a matrix t
-    // Eigen::MatrixXd determinant_two = Eigen::MatrixXd::Zero(this->N_beta,this->N_beta);
-    size_t copy1 = aone_string;
-    int sign1 = 1;
-    while (copy1 != 0) {
-        int sign2 = sign1;
-        size_t p = __builtin_ctzl(copy1);
-        size_t copy2 = bone_string;
-        while (copy2 != 0){
-            int sign3 = sign2;
-            size_t q = __builtin_ctzl(copy2);
-            size_t copy3 = btwo_string;
-            while(copy3 !=0){
-                int sign4 = sign3;
-                size_t r = __builtin_ctzl(copy3);
-                size_t copy4 = atwo_string;
-                while(copy4 != 0){
-                    size_t s = __builtin_ctzl(copy4);
-
-
-
-                    size_t aone = aone_string - (1<<p);
-                    size_t bone = bone_string - (1<<q);
-                    size_t btwo = btwo_string - (1<<r);
-                    size_t atwo = atwo_string - (1<<s);
-
-                    double overlaps = calculate_overlap(aone, atwo)* calculate_overlap(bone, btwo);
-                    std::cout<<sign4*overlaps*tei(p,s,q,r)<<std::endl;
-                    hamiltonian(index_one,index_two) += sign4*overlaps*tei(p,s,q,r);
-
-
-
-
-                    copy4 ^= (copy4 & -copy4);
-                    sign4 *=-1;
-
-                }
-
-                sign3 *=-1;
-                copy3 ^= (copy3 & -copy3);
-            }
-
-            sign2 *= -1;
-            copy2 ^= (copy2 & -copy2);
-
-        }
-        sign1 *= -1;
-        copy1 ^= (copy1 & -copy1);
-    }
-
-
-
-}
-
 void CompleteVB::mixer(){
-    std::cout<<"mixer"<<std::endl;
     for(int a = 0;a<dim_alpha;a++){
         for(OneElectronCoupling x: aoec[a]){
             for(int b = 0;b<dim_beta;b++){
@@ -180,15 +95,10 @@ void CompleteVB::mixer(){
                     int sign = x.sign*y.sign;
                     double overlaps = x.overlap*y.overlap;
                     hamiltonian(a*dim_beta+b,x.address_target*dim_beta+y.address_target) += sign*overlaps*tei(x.p,x.q,y.p,y.q);
-                    //std::cout<<sign*overlaps*tei(x.p,x.q,y.p,y.q)<<std::endl;
-
                 }
             }
         }
     }
-
-
-
 }
 
 double CompleteVB::calculate_overlap(size_t one_string, size_t two_string) {
@@ -214,9 +124,6 @@ double CompleteVB::calculate_overlap(size_t one_string, size_t two_string) {
         }
         overlaps = determinant.determinant();
     }
-
-
-
     return overlaps;
 }
 
@@ -252,7 +159,6 @@ void CompleteVB::calculate_separated_elements(size_t one_string, size_t two_stri
                 }else{
                     determinants[i](row_index,column_index) += this->oi(p,q);  // Fill the rest of the rows with overlap terms
                 }
-
             }
             double overlapcoupling = calculate_overlap(one_string-(1<<p),two_string-(1<<q));
             coupling_vector[index_one].emplace_back(OneElectronCoupling{signout,p,q,overlapcoupling,index_two});
@@ -307,9 +213,7 @@ void CompleteVB::calculate_separated_elements(size_t one_string, size_t two_stri
                 }
 
             }
-
             sign2 *= -1; // For subsequent secondary annihilations change the sign.
-
             copy2 ^= (copy2 & -copy2);
         }
 
