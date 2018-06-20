@@ -181,6 +181,19 @@ vb/fast:
 .PHONY : vb/fast
 
 #=============================================================================
+# Target rules for targets named sto-3G
+
+# Build rule for target.
+sto-3G: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 sto-3G
+.PHONY : sto-3G
+
+# fast build rule for target.
+sto-3G/fast:
+	$(MAKE) -f tests/CMakeFiles/sto-3G.dir/build.make tests/CMakeFiles/sto-3G.dir/build
+.PHONY : sto-3G/fast
+
+#=============================================================================
 # Target rules for targets named lih_complete_vb
 
 # Build rule for target.
@@ -246,6 +259,7 @@ help:
 	@echo "... install/local"
 	@echo "... test"
 	@echo "... vb"
+	@echo "... sto-3G"
 	@echo "... lih_complete_vb"
 	@echo "... hydrogen"
 	@echo "... h2o_vbcomplete"

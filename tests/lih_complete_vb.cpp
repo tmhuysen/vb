@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE ( lih_complete_vb ) {
     vb::CompleteVB vb (ao_basis,2,2);
     double internuclear_repulsion = LiH.calculateInternuclearRepulsionEnergy();
     double energy = vb.solve() + internuclear_repulsion;
-
+    std::cout<<energy;
     BOOST_CHECK(std::abs(energy-reference_energy)<1.0e-6);
 
 }

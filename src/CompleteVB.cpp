@@ -1,4 +1,5 @@
 #include "CompleteVB.hpp"
+#include <chrono>
 
 namespace vb{
 
@@ -19,43 +20,58 @@ CompleteVB::CompleteVB(libwint::AOBasis& ao_basis, size_t N_A, size_t N_B):
     this->overlap_alpha = Eigen::MatrixXd::Zero(dim_alpha,dim_alpha);
     this->overlap_beta = Eigen::MatrixXd::Zero(dim_beta,dim_beta);
 
+    this->as = std::vector<size_t>(dim_alpha);
+    bmqc::SpinString<unsigned long> ssa_a (0, this->addressing_scheme_alpha);
+    for (size_t i = 0; i < this->dim_alpha; i++) {
+        as[i] = ssa_a.get_representation();
+        ssa_a.nextPermutation();
+    }
+
+    this->bs = std::vector<size_t>(dim_beta);
+
+    bmqc::SpinString<unsigned long> ssa_b (0, this->addressing_scheme_beta);
+    for (size_t i = 0; i < this->dim_beta; i++) {
+        bs[i] = ssa_b.get_representation();
+        ssa_b.nextPermutation();
+    }
+
+    this->aoec = std::vector<std::vector<OneElectronCoupling>>(dim_alpha);
+    this->boec = std::vector<std::vector<OneElectronCoupling>>(dim_beta);
+
 
 }
 
 void CompleteVB::calculate_matrices() {
     overlap = Eigen::MatrixXd::Zero(dim,dim);
     hamiltonian = Eigen::MatrixXd::Zero(dim,dim);
+    auto start2 = std::chrono::high_resolution_clock::now();
 
-    bmqc::SpinString<unsigned long> ssa_one (0, this->addressing_scheme_alpha);  // alpha spin string with address 0
     for (size_t I_alpha = 0; I_alpha < this->dim_alpha; I_alpha++) {
-        bmqc::SpinString<unsigned long> ssa_two (0, this->addressing_scheme_alpha);  // alpha spin string with address 0
         for (size_t J_alpha = 0; J_alpha < this->dim_alpha; J_alpha++){
-            calculate_separated_elements(ssa_one.get_representation(), ssa_two.get_representation(), I_alpha, J_alpha,this->overlap_alpha,this->hamiltonian_alpha);
-            // BETA-ALPHA
-            bmqc::SpinString<unsigned long> ssa_2one (0, this->addressing_scheme_beta);  // beta spin string with address 0
+            calculate_separated_elements(as[I_alpha], as[J_alpha], I_alpha, J_alpha,this->overlap_alpha,this->hamiltonian_alpha,aoec);
+            /*
             for (size_t I_beta = 0; I_beta < this->dim_beta; I_beta++) {
-                bmqc::SpinString<unsigned long> ssa_2two (0, this->addressing_scheme_beta);  // beta spin string with address 0
-                for (size_t J_beta = 0; J_beta < this->dim_beta; J_beta++) {
-                    calculate_mixed_elements(ssa_one.get_representation(), ssa_two.get_representation(),
-                                             ssa_2one.get_representation(), ssa_2two.get_representation(),
-                                             this->dim_beta * I_alpha + I_beta, this->dim_beta * J_alpha + J_beta);
-                    ssa_2two.nextPermutation();
+                for (size_t J_beta = 0; J_beta < this->dim_beta; J_beta++){
+                    calculate_mixed_elements(as[I_alpha], as[J_alpha],bs[I_beta], bs[J_beta], I_alpha*dim_beta+I_beta, J_alpha*dim_beta+J_beta);
                 }
-                ssa_2one.nextPermutation();
             }
-            ssa_two.nextPermutation();
+             */
+
+
         }
-        ssa_one.nextPermutation();
     }
-    bmqc::SpinString<unsigned long> ssa_2one (0, this->addressing_scheme_beta);  // beta spin string with address 0
+    auto stop2 = std::chrono::high_resolution_clock::now();
+
+    // Process the chrono time and output
+    auto elapsed_time2 = stop2 - start2;           // in nanoseconds
+    auto seconds2 = elapsed_time2.count() / 1e9;  // in seconds
+    std::cout << "finnish swedish" << " : " << seconds2 << std::endl;
     for (size_t I_beta = 0; I_beta < this->dim_beta; I_beta++) {
-        bmqc::SpinString<unsigned long> ssa_2two (0, this->addressing_scheme_beta);  // beta spin string with address 0
         for (size_t J_beta = 0; J_beta < this->dim_beta; J_beta++){
-            calculate_separated_elements(ssa_2one.get_representation(), ssa_2two.get_representation(), I_beta, J_beta,this->overlap_beta,this->hamiltonian_beta);
-            ssa_2two.nextPermutation();
+            calculate_separated_elements(bs[I_beta], bs[J_beta], I_beta, J_beta,this->overlap_beta,this->hamiltonian_beta,boec);
         }
-        ssa_2one.nextPermutation();
     }
+
 }
 
 size_t CompleteVB::calculateDimension(size_t K, size_t N_alpha, size_t N_beta) {
@@ -77,6 +93,14 @@ void CompleteVB::finish_off() {
             hamiltonian.block(i*dim_beta,j*dim_beta,dim_beta,dim_beta) += hamiltonian_alpha(i,j)*overlap_beta;
         }
     }
+    auto start2 = std::chrono::high_resolution_clock::now();
+    mixer();
+    auto stop2 = std::chrono::high_resolution_clock::now();
+
+    // Process the chrono time and output
+    auto elapsed_time2 = stop2 - start2;           // in nanoseconds
+    auto seconds2 = elapsed_time2.count() / 1e9;  // in seconds
+    std::cout << "finnish swedish" << " : " << seconds2 << std::endl;
 }
 
 double CompleteVB::solve() {
@@ -120,6 +144,7 @@ void CompleteVB::calculate_mixed_elements(size_t aone_string, size_t atwo_string
                     size_t atwo = atwo_string - (1<<s);
 
                     double overlaps = calculate_overlap(aone, atwo)* calculate_overlap(bone, btwo);
+                    std::cout<<sign4*overlaps*tei(p,s,q,r)<<std::endl;
                     hamiltonian(index_one,index_two) += sign4*overlaps*tei(p,s,q,r);
 
 
@@ -140,6 +165,26 @@ void CompleteVB::calculate_mixed_elements(size_t aone_string, size_t atwo_string
         }
         sign1 *= -1;
         copy1 ^= (copy1 & -copy1);
+    }
+
+
+
+}
+
+void CompleteVB::mixer(){
+    std::cout<<"mixer"<<std::endl;
+    for(int a = 0;a<dim_alpha;a++){
+        for(OneElectronCoupling x: aoec[a]){
+            for(int b = 0;b<dim_beta;b++){
+                for(OneElectronCoupling y: boec[b]){
+                    int sign = x.sign*y.sign;
+                    double overlaps = x.overlap*y.overlap;
+                    hamiltonian(a*dim_beta+b,x.address_target*dim_beta+y.address_target) += sign*overlaps*tei(x.p,x.q,y.p,y.q);
+                    //std::cout<<sign*overlaps*tei(x.p,x.q,y.p,y.q)<<std::endl;
+
+                }
+            }
+        }
     }
 
 
@@ -176,7 +221,7 @@ double CompleteVB::calculate_overlap(size_t one_string, size_t two_string) {
 }
 
 void CompleteVB::calculate_separated_elements(size_t one_string, size_t two_string, size_t index_one, size_t index_two,
-                                              Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian) {
+                                              Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian, std::vector<std::vector<OneElectronCoupling>>& coupling_vector) {
     
     // Calculate the amount of electrons for the string
     size_t N = __builtin_popcount(one_string);
@@ -192,8 +237,9 @@ void CompleteVB::calculate_separated_elements(size_t one_string, size_t two_stri
 
     size_t row_index = 0;  // Index related the determinant matrices
     size_t copy_one = one_string;  // copy bitstring
-
+    int signin =1;
     while (copy_one != 0) {
+        int signout = signin;
         size_t column_index = 0;  // Index related the determinant matrices
         size_t p = __builtin_ctzl(copy_one);  // Index of the overlap or electron operator
         size_t copy_two = two_string;
@@ -202,16 +248,21 @@ void CompleteVB::calculate_separated_elements(size_t one_string, size_t two_stri
             determinant_overlap(row_index,column_index) += this->oi(p,q);  // The determinant for the overlap matrix
             for(int i = 0;i<this->N_alpha;i++){
                 if(row_index == i){
-                    determinants[i](row_index,column_index) += oei(p,q);  // Fill one row with one electron-operator evaluations.
+                    determinants[i](row_index,column_index) += this->oei(p,q);  // Fill one row with one electron-operator evaluations.
                 }else{
                     determinants[i](row_index,column_index) += this->oi(p,q);  // Fill the rest of the rows with overlap terms
                 }
+
             }
+            double overlapcoupling = calculate_overlap(one_string-(1<<p),two_string-(1<<q));
+            coupling_vector[index_one].emplace_back(OneElectronCoupling{signout,p,q,overlapcoupling,index_two});
             column_index++;
             copy_two ^= (copy_two & -copy_two);  // least significant bit removal.
+            signout *=-1;
         }
         row_index++;
         copy_one ^= (copy_one & -copy_one);  // least significant bit removal.
+        signin *= -1;
     }
 
     // Calculate the determinants and add them to the corresponding indexes
@@ -246,7 +297,8 @@ void CompleteVB::calculate_separated_elements(size_t one_string, size_t two_stri
                     size_t atwo = (two_string - (1<<s)) - (1<<r);
                     double overlaps = calculate_overlap(aone, atwo);
 
-                    // We only do secondary annihilations, the opposite order results in a sign change (3rd and 4th term include one switch) dubble opposite order for both strings results in a positive again (2nd term).
+                    // We only do one set of secondary annihilations, the opposite order results in a sign change (3rd and 4th term include one switch)
+                    // double opposite switch for both strings results in a positive again (2nd term).
                     double term = tei(p,r,q,s) + tei(q,s,p,r) - tei(q,r,p,s) - tei(p,s,q,r);
                     hamiltonian(index_one,index_two) += sign4*overlaps*term/2;
 

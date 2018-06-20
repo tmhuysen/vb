@@ -11,7 +11,7 @@ namespace vb {
 
 class CompleteVB {
 public:
-    // Public Member Variables : Developmental Stage (TO:DO Change)
+    // Public Member Variables : Developmental Stage TODO: Change
     libwint::AOBasis ao_basis;
     const size_t dim;
     const size_t dim_alpha;  // the dimension of the alpha CI space
@@ -37,9 +37,25 @@ public:
     Eigen::MatrixXd overlap_beta;
     Eigen::MatrixXd overlap;
 
-    void calculate_separated_elements(size_t one_string, size_t two_string,size_t index_one, size_t index_two, Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian);
+    struct OneElectronCoupling {
+        int sign;
+        size_t p;
+        size_t q;
+        double overlap;
+        size_t address_target;
+    };
+
+    std::vector<size_t> as;
+    std::vector<size_t> bs;
+    std::vector<std::vector<OneElectronCoupling>> aoec;
+    std::vector<std::vector<OneElectronCoupling>> boec;
+
+
+
+    void calculate_separated_elements(size_t one_string, size_t two_string,size_t index_one, size_t index_two, Eigen::MatrixXd& overlap, Eigen::MatrixXd& hamiltonian, std::vector<std::vector<OneElectronCoupling>>& coupling);
     void calculate_mixed_elements(size_t aone_string, size_t atwo_string, size_t bone_string, size_t btwo_string,
                                   size_t index_one, size_t index_two);
+    void mixer();
     double calculate_overlap(size_t aone_string, size_t atwo_string);
 
     // CONSTRUCTORS
@@ -48,6 +64,7 @@ public:
      *  @param N_beta.
      */
     CompleteVB(libwint::AOBasis &ao_basis, size_t N_A, size_t N_B);
+
 
 
     // STATIC PUBLIC METHODS
@@ -63,7 +80,15 @@ public:
      *  Calculates the overlap Matrix (overlap) and the (non-orthogonalized) Hamiltonian (hamiltonian)
      */
     void calculate_matrices();
+
+    /*
+     *  Recombines alpha and beta separated calculations
+     */
     void finish_off();
+
+    /*
+     * Solves
+     */
     double solve();
 };
 

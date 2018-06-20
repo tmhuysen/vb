@@ -168,6 +168,21 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+tests/CMakeFiles/sto-3G.dir/rule:
+	cd /Users/wulfix/Desktop/Cursussen_Gent/ThesisDir/Libraries/GQCG/vb/quick && $(MAKE) -f CMakeFiles/Makefile2 tests/CMakeFiles/sto-3G.dir/rule
+.PHONY : tests/CMakeFiles/sto-3G.dir/rule
+
+# Convenience name for target.
+sto-3G: tests/CMakeFiles/sto-3G.dir/rule
+
+.PHONY : sto-3G
+
+# fast build rule for target.
+sto-3G/fast:
+	cd /Users/wulfix/Desktop/Cursussen_Gent/ThesisDir/Libraries/GQCG/vb/quick && $(MAKE) -f tests/CMakeFiles/sto-3G.dir/build.make tests/CMakeFiles/sto-3G.dir/build
+.PHONY : sto-3G/fast
+
+# Convenience name for target.
 tests/CMakeFiles/lih_complete_vb.dir/rule:
 	cd /Users/wulfix/Desktop/Cursussen_Gent/ThesisDir/Libraries/GQCG/vb/quick && $(MAKE) -f CMakeFiles/Makefile2 tests/CMakeFiles/lih_complete_vb.dir/rule
 .PHONY : tests/CMakeFiles/lih_complete_vb.dir/rule
@@ -293,6 +308,33 @@ lih_complete_vb.cpp.s:
 	cd /Users/wulfix/Desktop/Cursussen_Gent/ThesisDir/Libraries/GQCG/vb/quick && $(MAKE) -f tests/CMakeFiles/lih_complete_vb.dir/build.make tests/CMakeFiles/lih_complete_vb.dir/lih_complete_vb.cpp.s
 .PHONY : lih_complete_vb.cpp.s
 
+sto-3G.o: sto-3G.cpp.o
+
+.PHONY : sto-3G.o
+
+# target to build an object file
+sto-3G.cpp.o:
+	cd /Users/wulfix/Desktop/Cursussen_Gent/ThesisDir/Libraries/GQCG/vb/quick && $(MAKE) -f tests/CMakeFiles/sto-3G.dir/build.make tests/CMakeFiles/sto-3G.dir/sto-3G.cpp.o
+.PHONY : sto-3G.cpp.o
+
+sto-3G.i: sto-3G.cpp.i
+
+.PHONY : sto-3G.i
+
+# target to preprocess a source file
+sto-3G.cpp.i:
+	cd /Users/wulfix/Desktop/Cursussen_Gent/ThesisDir/Libraries/GQCG/vb/quick && $(MAKE) -f tests/CMakeFiles/sto-3G.dir/build.make tests/CMakeFiles/sto-3G.dir/sto-3G.cpp.i
+.PHONY : sto-3G.cpp.i
+
+sto-3G.s: sto-3G.cpp.s
+
+.PHONY : sto-3G.s
+
+# target to generate assembly for a file
+sto-3G.cpp.s:
+	cd /Users/wulfix/Desktop/Cursussen_Gent/ThesisDir/Libraries/GQCG/vb/quick && $(MAKE) -f tests/CMakeFiles/sto-3G.dir/build.make tests/CMakeFiles/sto-3G.dir/sto-3G.cpp.s
+.PHONY : sto-3G.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -304,8 +346,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... install/local"
 	@echo "... test"
-	@echo "... lih_complete_vb"
 	@echo "... edit_cache"
+	@echo "... sto-3G"
+	@echo "... lih_complete_vb"
 	@echo "... hydrogen"
 	@echo "... list_install_components"
 	@echo "... h2o_vbcomplete"
@@ -318,6 +361,9 @@ help:
 	@echo "... lih_complete_vb.o"
 	@echo "... lih_complete_vb.i"
 	@echo "... lih_complete_vb.s"
+	@echo "... sto-3G.o"
+	@echo "... sto-3G.i"
+	@echo "... sto-3G.s"
 .PHONY : help
 
 
