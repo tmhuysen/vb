@@ -3,15 +3,22 @@
  */
 
 #include <libwint.hpp>
+#include <hf.hpp>
 #include "CompleteVB.hpp"
 
 
 int main() {
-    std::string filename = "../exe/h2o.xyz";
-    libwint::Molecule LiH (filename);
-    libwint::AOBasis ao_basis (LiH, "STO-3G");
-    double repulsion = LiH.calculateInternuclearRepulsionEnergy();
+    std::string filename = "../../exe/h2.xyz";
+    libwint::Molecule h2 (filename);
+    libwint::AOBasis ao_basis (h2, "STO-3G");
+    double repulsion = h2.calculateInternuclearRepulsionEnergy();
     ao_basis.calculateIntegrals();
-    vb::CompleteVB fci(ao_basis,5,5);
-    std::cout<<fci.solve()+repulsion;
+    vb::CompleteVB vb(ao_basis,1,1);
+    std::cout<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<vb.solve()+repulsion;
+
+
+
+
 }

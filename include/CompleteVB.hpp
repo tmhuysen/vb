@@ -2,16 +2,19 @@
 #define VB_COMPLETEVB_HPP
 
 #include "libwint.hpp"
-#include "bmqc.hpp"
+#include "common.hpp"
 #include <boost/numeric/conversion/converter.hpp>
 #include <boost/math/special_functions.hpp>
 
 
 namespace vb {
 
+
+
+
 class CompleteVB {
 private:
-    libwint::AOBasis ao_basis;
+    libwint::AOBasis ao_basis;  // The atomic basis-set
     const size_t dim;
     const size_t dim_alpha;  // the dimension of the alpha CI space
     const size_t dim_beta;  // the dimension of the beta CI space
@@ -21,30 +24,26 @@ private:
     const size_t N_alpha;  // number of alpha electrons
     const size_t N_beta;  // number of beta electrons
 
-    Eigen::MatrixXd oei;
-    Eigen::Tensor<double,4> tei;
-    Eigen::MatrixXd oi;
+    Eigen::MatrixXd oei;  // one electeron integrals
+    Eigen::Tensor<double,4> tei;  // two electron integrals
+    Eigen::MatrixXd oi;  // overlap integrals
 
-    Eigen::MatrixXd hamiltonian_alpha;
-    Eigen::MatrixXd hamiltonian_beta;
-    Eigen::MatrixXd hamiltonian;
+    Eigen::MatrixXd hamiltonian_alpha; // Alpha exclusive values (4-alpha two electron integrals, 2-alpha one electron integrals)
+    Eigen::MatrixXd hamiltonian_beta;  // Beta exclusive values
+    Eigen::MatrixXd hamiltonian;  // Combinations of all alpha and beta exclusive values + 2 * (alpha beta beta alpha two electron integrals)
 
     Eigen::MatrixXd overlap_alpha;
     Eigen::MatrixXd overlap_beta;
     Eigen::MatrixXd overlap;
 
-    struct OneElectronCoupling {
-        int sign;
-        size_t p;
-        size_t q;
-        double overlap;
-        size_t address_target;
-    };
+    std::vector<size_t> as;  // Alpha bitstrings
+    std::vector<size_t> bs;  // Beta bitstrings
 
-    std::vector<size_t> as;
-    std::vector<size_t> bs;
-    std::vector<std::vector<OneElectronCoupling>> aoec;
+    std::vector<std::vector<OneElectronCoupling>> aoec;  // overlap after a one electron evaluation
     std::vector<std::vector<OneElectronCoupling>> boec;
+
+    Eigen::MatrixXd eigenvectors;
+    Eigen::VectorXd eigenvalues;
 
 
     /**
@@ -93,6 +92,25 @@ public:
      * Solves the complete VB (non-orthognal fci) problem.
      */
     double solve();
+
+    // GETTERS
+
+    const Eigen::MatrixXd &get_eigenvectors() const {
+        return this->eigenvectors;
+    }
+
+    const Eigen::VectorXd &get_eigenvalues() const {
+        return this->eigenvalues;
+    }
+
+    void set_stuff(Eigen::MatrixXd oei, Eigen::Tensor<double,4> tei, Eigen::MatrixXd oi, std::vector<size_t> alpha,std::vector<size_t> beta){
+        this->oei = oei;
+        this->tei = tei;
+        this->oi = oi;
+        this->as = alpha;
+        this->bs = beta;
+
+    }
 };
 
 }  // namespace vb

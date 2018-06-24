@@ -82,6 +82,9 @@ double CompleteVB::solve() {
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver2(this->overlap);
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver3(solver2.operatorInverseSqrt()*this->hamiltonian*solver2.operatorInverseSqrt());
 
+    //std::cout<<solver3.eigenvectors();
+    this->eigenvectors = solver3.eigenvectors();
+    this->eigenvalues = solver3.eigenvalues();
     return eigen_solver.eigenvalues()(0);
 }
 
@@ -151,7 +154,7 @@ void CompleteVB::calculate_separated_elements(size_t string_state_one, size_t st
         while (copy_two != 0){
             size_t q = __builtin_ctzl(copy_two);  // Index of the overlap or electron operator
             determinant_overlap(row_index,column_index) += this->oi(p,q);  // The determinant for the overlap matrix
-            for(int i = 0;i<this->N_alpha;i++){
+            for(int i = 0;i<N;i++){
                 if(row_index == i){
                     determinants[i](row_index,column_index) += this->oei(p,q);  // Fill one row with one electron-operator evaluations.
                 }else{

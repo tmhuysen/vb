@@ -7,7 +7,7 @@
 
 
 int main() {
-    std::string filename = "../exe/h2o.xyz";
+    std::string filename = "../../exe/h2o.xyz";
     libwint::Molecule LiH (filename);
     libwint::AOBasis ao_basis (LiH, "STO-3G");
     double repulsion = LiH.calculateInternuclearRepulsionEnergy();

@@ -1,34 +1,14 @@
-#define BOOST_TEST_MODULE "SelectiveVB"
+/*
+ * Hard-code exe cause i'm lazy
+ */
 
+#include <libwint.hpp>
+#include "CompleteVB.hpp"
 #include "SelectiveVB.hpp"
 #include "bits.hpp"
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/included/unit_test.hpp>
 
-
-BOOST_AUTO_TEST_CASE ( Heitler_london ) {
-
-    vb::State cov{{1,2},{2,1}};
-    vb::State ion{{1,2},{1,2}};
-    libwint::Molecule H2("../../tests/data/h2.xyz");
-    libwint::AOBasis ao_basis(H2,"STO-3G");
-    ao_basis.calculateIntegrals();
-    std::vector<vb::State> states = {cov,ion};
-    vb::SelectiveVB elective_amnesia(ao_basis.get_T()+ao_basis.get_V(),ao_basis.get_g(),ao_basis.get_S(),states);
-
-    std::cout<<elective_amnesia.solve()+H2.calculateInternuclearRepulsionEnergy();
-
-
-
-
-
-}
-
-BOOST_AUTO_TEST_CASE ( Heitler_london_H4 ) {
-    // LiH FCI calculation GQCG
-
-
+int main() {
     libwint::Molecule H4("../../tests/data/h6.xyz");
     libwint::AOBasis ao_basis(H4,"STO-3G");
     ao_basis.calculateIntegrals();
@@ -51,9 +31,5 @@ BOOST_AUTO_TEST_CASE ( Heitler_london_H4 ) {
     vb::SelectiveVB elective_amnesia(ao_basis.get_T()+ao_basis.get_V(),ao_basis.get_g(),ao_basis.get_S(),states);
 
     std::cout<<std::endl<<elective_amnesia.solve()+H4.calculateInternuclearRepulsionEnergy()<<std::endl;
-
-
-
-
 
 }
