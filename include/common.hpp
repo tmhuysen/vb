@@ -22,6 +22,14 @@ struct State {
 
 };
 
+struct StateW {
+
+    std::vector<size_t> alpha;
+    std::vector<size_t> beta;
+    std::vector<double> weights;
+
+};
+
 size_t bitstring(std::vector<int> indexes);
 size_t bitstring(size_t);
 

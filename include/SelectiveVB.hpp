@@ -7,7 +7,7 @@
 namespace vb {
 
 class SelectiveVB {
-private:
+protected:
     size_t dim;
     size_t dim_alpha;  // the dimension of the alpha CI space
     size_t dim_beta;  // the dimension of the beta CI space
@@ -36,10 +36,6 @@ private:
 
 
 
-
-
-
-
     /**
      *  All calculations from the perspective of one of the spin functions (no mixing)
      */
@@ -55,10 +51,10 @@ private:
      */
     double calculate_overlap(size_t string_state_one, size_t string_state_two);
 
-    /**
+     /**
      *  Calculates the overlap Matrix (overlap) and the (non-orthogonalized) Hamiltonian (hamiltonian)
      */
-    void calculate_matrices();
+    virtual void calculate_matrices();
 
 
 public:
@@ -69,7 +65,7 @@ public:
      *  @param N_beta.
      */
     SelectiveVB(Eigen::MatrixXd oei, Eigen::Tensor<double,4> tei, Eigen::MatrixXd oi, std::vector<State> states);
-
+    SelectiveVB()=default;
 
     // PUBLIC METHODS
 

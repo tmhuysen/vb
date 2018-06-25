@@ -10,14 +10,17 @@
 BOOST_AUTO_TEST_CASE ( Heitler_london ) {
 
     vb::State cov{{1,2},{2,1}};
-    vb::State ion{{1,2},{1,2}};
+    vb::State ion1{{1,2},{1,2}};
     libwint::Molecule H2("../../tests/data/h2.xyz");
     libwint::AOBasis ao_basis(H2,"STO-3G");
     ao_basis.calculateIntegrals();
-    std::vector<vb::State> states = {cov,ion};
+    std::vector<vb::State> states = {cov,ion1};
     vb::SelectiveVB elective_amnesia(ao_basis.get_T()+ao_basis.get_V(),ao_basis.get_g(),ao_basis.get_S(),states);
 
     std::cout<<elective_amnesia.solve()+H2.calculateInternuclearRepulsionEnergy();
+    std::cout<<std::endl;
+    std::cout<<elective_amnesia.get_eigenvectors();
+
 
 
 

@@ -134,6 +134,8 @@ int main() {
     size_t det6 = base_det + vb::bitstring({14,16});
     std::vector<size_t> slaters = {det1,det2,det3,det4,det5,det6};
     std::vector<vb::State> all_states = {};
+
+    // Every possible determinant combination
     for(size_t x: slaters){
         for(size_t y:slaters){
             vb::State anon{{x},{y}};

@@ -14,10 +14,3 @@ target_link_libraries(${LIBRARY_NAME} PUBLIC Eigen3::Eigen)
 target_include_directories(${LIBRARY_NAME} PUBLIC ${hf_INCLUDE_DIRS})
 target_link_libraries(${LIBRARY_NAME} PUBLIC hf)
 
-# Include bmqc
-target_include_directories(${LIBRARY_NAME} PUBLIC ${bmqc_INCLUDE_DIRS})
-target_link_libraries(${LIBRARY_NAME} PUBLIC bmqc)
-
-# Include numopt
-target_include_directories(${LIBRARY_NAME} PUBLIC ${numopt_INCLUDE_DIRS})
-target_link_libraries(${LIBRARY_NAME} PUBLIC numopt)
