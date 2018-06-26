@@ -135,13 +135,13 @@ int main() {
     // A state is a set of determinants, determinants are split-up by spin each has to have counter part in the respective sets
     // State {{alpha}{beta}} with {alpha}.size = {beta}.size
 
-
-    std::ofstream outfile("VB_cov_breed2.data");
+    // Explorative method to find minimum at tigther intervals
+    std::ofstream outfile("VB_cov_breed_tight.data");
     outfile<<std::setprecision(12);
-    double c = -1.5;
-    double d = -1.5;
-    for(double x =1;x<2;x+=0.1){
-        for(double y=0.5;y<2;y+=0.1){
+    double c = 1.9;
+    double d = 1.9;
+    for(double x =0.0;x<0.2;x+=0.05){
+        for(double y=0.0;y<0.2;y+=0.05){
             double a = c+x;
             double b = d+y;
             double o1 = 4*a*a;

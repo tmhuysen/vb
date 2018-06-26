@@ -136,6 +136,7 @@ int main() {
     std::vector<vb::State> all_states = {};
 
     // Every possible determinant combination
+
     for(size_t x: slaters){
         for(size_t y:slaters){
             vb::State anon{{x},{y},{1}};
@@ -143,10 +144,15 @@ int main() {
 
         }
     }
-
+    // Solve
     vb::SelectiveVB selectiveVB(oei,two_ei,oi,all_states);
     std::cout<<std::endl<<" complete pz "<<" : "<<selectiveVB.solve()+repulsion<<std::endl;
     Eigen::VectorXd veck = selectiveVB.get_eigenvectors().col(0);
+
+
+
+
+    // print for testing and looking at coefs
     int test = 1;
     int test2 = 1;
     for(int i =0;i<36;i++){

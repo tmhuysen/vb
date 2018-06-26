@@ -131,10 +131,8 @@ int main() {
     size_t det5 = base_det + vb::bitstring({13,15}); // 1 3 ->5
     size_t det6 = base_det + vb::bitstring({14,16}); // 2 4 ->6
 
-    // A state is a set of determinants, determinants are split-up by spin each has to have counter part in the respective sets
-    // State {{alpha}{beta}} with {alpha}.size = {beta}.size
 
-
+    // Explorative method to find minimum
     std::ofstream outfile("VB_cov_breed_fast.data");
     outfile<<std::setprecision(12);
     double c = -1.5;

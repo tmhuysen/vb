@@ -132,22 +132,29 @@ int main() {
     size_t det6 = base_det + vb::bitstring({14,16});
 
     std::vector<size_t> slaters = {det1,det2,det3,det4,det5,det6};
+
+    // Considered states
+    // A state is a set of determinants, determinants are split-up by spin each has to have counter part in the respective sets
+    // State {{alpha}{beta}} with {alpha}.size = {beta}.size
+    // Additionally one needs to attributed "weights" to the determinants often just signs
+    // State = {alpha},{beta},{weights}
     vb::State cov {{det1,det2,det3,det4},{det4,det3,det2,det1},{-1,1,1,-1}};
     vb::State rad {{det5,det2,det3,det6},{det6,det3,det2,det5},{1,1,1,1}};
     vb::State ion1 {{det1,det3,det1,det2},{det3,det1,det2,det1},{1,1,-1,-1}};
-    vb::State covionl {{det5,det3},{det3,det5}};
-    vb::State covionr {{det2,det6},{det6,det2}};
-    vb::State ion1l {{det2},{det2}};  // cross-ion l
-    vb::State ionc {{det2,det3},{det2,det3},{-1,-1}};  // cross-ion
-    vb::State ion1r {{det3},{det3}};  //cross-ion r
+    //vb::State covionl {{det5,det3},{det3,det5}};
+    //vb::State covionr {{det2,det6},{det6,det2}};
+    //vb::State ion1l {{det2},{det2}};  // cross-ion l
+    //vb::State ionc {{det2,det3},{det2,det3},{-1,-1}};  // cross-ion
+    //vb::State ion1r {{det3},{det3}};  //cross-ion r
     vb::State ion2 {{det1},{det1},{1}};  // midion
     vb::State ion3 {{det4},{det4},{1}};  // outer-ion
     std::vector<vb::State> all_states{cov,rad,ion1,ion2,ion3};
-    std::vector<vb::State> all_states2{cov,rad,covionl,covionr,ion2};
+    //std::vector<vb::State> all_states2{cov,rad,covionl,covionr,ion2};
     std::vector<std::string> all_names{"covalent","radical","ion1","middle-ion","outer-ion"};
-    std::vector<std::string> all_names2{"covalent","radical","cov-ionl","cov-ionr","mid-ion"};
+    //std::vector<std::string> all_names2{"covalent","radical","cov-ionl","cov-ionr","mid-ion"};
     std::ofstream outfile("VB_beter.data");
     outfile<<std::setprecision(12);
+    // All possible states combinations that were considerd
     int numba = 5;
     for(int i = 0;i<numba;i++){
         try{
