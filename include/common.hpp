@@ -13,16 +13,7 @@ struct OneElectronCoupling {
     size_t address_target;
 };
 
-
 struct State {
-
-    std::vector<size_t> alpha;
-    std::vector<size_t> beta;
-    //std::vector<double> weights;
-
-};
-
-struct StateW {
 
     std::vector<size_t> alpha;
     std::vector<size_t> beta;

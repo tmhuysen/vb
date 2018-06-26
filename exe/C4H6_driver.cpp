@@ -122,7 +122,7 @@ int main() {
     // C3 = 15
     // C4 = 16
 
-    // Possible determinants:
+    // Possible determinants for a 2 electrons of the same spin :
 
     size_t det1 = base_det + vb::bitstring({13,14});
     size_t det2 = base_det + vb::bitstring({13,16});
@@ -132,29 +132,31 @@ int main() {
     size_t det6 = base_det + vb::bitstring({14,16});
 
     std::vector<size_t> slaters = {det1,det2,det3,det4,det5,det6};
-    vb::State cov {{det1,det2,det3,det4},{det4,det3,det2,det1}};
-    vb::State rad {{det5,det2,det3,det6},{det6,det3,det2,det5}};
+    vb::State cov {{det1,det2,det3,det4},{det4,det3,det2,det1},{-1,1,1,-1}};
+    vb::State rad {{det5,det2,det3,det6},{det6,det3,det2,det5},{1,1,1,1}};
+    vb::State ion1 {{det1,det3,det1,det2},{det3,det1,det2,det1},{1,1,-1,-1}};
     vb::State covionl {{det5,det3},{det3,det5}};
     vb::State covionr {{det2,det6},{det6,det2}};
     vb::State ion1l {{det2},{det2}};  // cross-ion l
-    vb::State ionc {{det2,det3},{det2,det3}};  // cross-ion
+    vb::State ionc {{det2,det3},{det2,det3},{-1,-1}};  // cross-ion
     vb::State ion1r {{det3},{det3}};  //cross-ion r
-    vb::State ion2 {{det1},{det1}};  // midion
-    vb::State ion3 {{det4},{det4}};  // outer-ion
-    std::vector<vb::State> all_states2{cov,rad,ionc,ion2,ion3};
-    std::vector<vb::State> all_states{cov,rad,covionl,covionr,ion2};
-    std::vector<std::string> all_names2{"covalent","radical","cross-ion","middle-ion","outer-ion"};
-    std::vector<std::string> all_names{"covalent","radical","cov-ionl","cov-ionr","mid-ion"};
-    std::ofstream outfile("VB_C4H63.data");
+    vb::State ion2 {{det1},{det1},{1}};  // midion
+    vb::State ion3 {{det4},{det4},{1}};  // outer-ion
+    std::vector<vb::State> all_states{cov,rad,ion1,ion2,ion3};
+    std::vector<vb::State> all_states2{cov,rad,covionl,covionr,ion2};
+    std::vector<std::string> all_names{"covalent","radical","ion1","middle-ion","outer-ion"};
+    std::vector<std::string> all_names2{"covalent","radical","cov-ionl","cov-ionr","mid-ion"};
+    std::ofstream outfile("VB_beter.data");
     outfile<<std::setprecision(12);
-    for(int i = 0;i<5;i++){
+    int numba = 5;
+    for(int i = 0;i<numba;i++){
         try{
             vb::SelectiveVB selectiveVB(oei,two_ei,oi,{all_states[i]});
             outfile<<std::endl<<all_names[i]<<" "<<" : "<<selectiveVB.solve()+repulsion;
         }catch (const std::overflow_error& e){
 
         }
-        for(int j = i+1;j<5;j++){
+        for(int j = i+1;j<numba;j++){
             try{
                 vb::SelectiveVB selectiveVB(oei,two_ei,oi,{all_states[i],all_states[j]});
                 outfile<<std::endl<<all_names[i]<<" "<<all_names[j]<<" "<<" : "<<selectiveVB.solve()+repulsion<<std::endl;
@@ -163,7 +165,7 @@ int main() {
             }catch (const std::overflow_error& e){
 
             }
-            for(int l = j+1;l<5;l++){
+            for(int l = j+1;l<numba;l++){
                 try{
                     vb::SelectiveVB selectiveVB(oei,two_ei,oi,{all_states[i],all_states[j],all_states[l]});
                     outfile<<std::endl<<all_names[i]<<" "<<all_names[j]<<" "<<all_names[l]<<" "<<" : "<<selectiveVB.solve()+repulsion<<std::endl;
@@ -172,7 +174,7 @@ int main() {
                 }catch (const std::overflow_error& e){
 
                 }
-                for(int k = l+1;k<5;k++){
+                for(int k = l+1;k<numba;k++){
                     try{
                         vb::SelectiveVB selectiveVB(oei,two_ei,oi,{all_states[i],all_states[j],all_states[l],all_states[k]});
                         outfile<<std::endl<<all_names[i]<<" "<<all_names[j]<<" "<<all_names[l]<<" "<<" "<<all_names[k]<<" : "<<selectiveVB.solve()+repulsion<<std::endl;
@@ -181,7 +183,7 @@ int main() {
                     }catch (const std::overflow_error& e){
 
                     }
-                    for(int q = k+1;q<5;q++){
+                    for(int q = k+1;q<numba;q++){
                         try{
                             vb::SelectiveVB selectiveVB(oei,two_ei,oi,all_states);
                             outfile<<std::endl<<"all"<<" : "<<selectiveVB.solve()+repulsion<<std::endl;

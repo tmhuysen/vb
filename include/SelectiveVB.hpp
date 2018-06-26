@@ -35,7 +35,6 @@ protected:
 
 
 
-
     /**
      *  All calculations from the perspective of one of the spin functions (no mixing)
      */
@@ -58,6 +57,7 @@ protected:
 
 
 public:
+    size_t orthogonality_set = 0;
     // CONSTRUCTORS
 
     /**

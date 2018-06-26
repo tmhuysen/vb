@@ -16,13 +16,17 @@ void SelectiveVB::calculate_matrices() {
         for(int index_col = index_row; index_col<dim;index_col++){
             for(int i = 0; i<states[index_row].alpha.size();i++){
                 for(int j = 0; j<states[index_col].alpha.size();j++){
+                    double weights = states[index_row].weights[i]*states[index_col].weights[j]; // fixed weights or minus signs from the linear combinations in states
                     double overlap_alpha = calculate_overlap(states[index_row].alpha[i],states[index_col].alpha[j]);
                     double overlap_beta = calculate_overlap(states[index_row].beta[i],states[index_col].beta[j]);
 
-                    this->overlap(index_row,index_col) += overlap_alpha*overlap_beta;
-                    this->hamiltonian(index_row,index_col) += calculate_separated_elements(states[index_row].alpha[i],states[index_col].alpha[j])*overlap_beta;
-                    this->hamiltonian(index_row,index_col) += calculate_separated_elements(states[index_row].beta[i],states[index_col].beta[j])*overlap_alpha;
-                    this->hamiltonian(index_row,index_col) += calculate_mixed_elements(states[index_row].alpha[i],states[index_col].alpha[j],states[index_row].beta[i],states[index_col].beta[j]);
+                    this->overlap(index_row,index_col) += overlap_alpha*overlap_beta*weights;
+                    double hamvalue = 0;
+                    hamvalue += calculate_separated_elements(states[index_row].alpha[i],states[index_col].alpha[j])*overlap_beta;
+                    hamvalue += calculate_separated_elements(states[index_row].beta[i],states[index_col].beta[j])*overlap_alpha;
+                    hamvalue += calculate_mixed_elements(states[index_row].alpha[i],states[index_col].alpha[j],states[index_row].beta[i],states[index_col].beta[j]);
+
+                    this->hamiltonian(index_row,index_col) += hamvalue*weights;
                     this->overlap(index_col,index_row)=this->overlap(index_row,index_col);
                     this->hamiltonian(index_col,index_row)=this->hamiltonian(index_row,index_col);
 
@@ -34,6 +38,12 @@ void SelectiveVB::calculate_matrices() {
 }
 
 double SelectiveVB::calculate_overlap(size_t string_state_one, size_t string_state_two) {
+    if(orthogonality_set>0){
+        size_t test = string_state_one^string_state_two;
+        if(__builtin_ctzl(test)<orthogonality_set && __builtin_ctzl(test) != 0){
+            return 0;
+        }
+    }
     double overlaps = 1;
     size_t N = __builtin_popcount(string_state_one);
     Eigen::MatrixXd determinant;

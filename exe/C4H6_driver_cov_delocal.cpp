@@ -124,36 +124,53 @@ int main() {
 
     // Possible determinants:
 
-    size_t det1 = base_det + vb::bitstring({13,14});
-    size_t det2 = base_det + vb::bitstring({13,16});
-    size_t det3 = base_det + vb::bitstring({14,15});
-    size_t det4 = base_det + vb::bitstring({15,16});
-    size_t det5 = base_det + vb::bitstring({13,15});
-    size_t det6 = base_det + vb::bitstring({14,16});
+    size_t det1 = base_det + vb::bitstring({13,14}); // 1 2 ->1
+    size_t det2 = base_det + vb::bitstring({13,16}); // 1 4 ->2
+    size_t det3 = base_det + vb::bitstring({14,15}); // 2 3 ->3
+    size_t det4 = base_det + vb::bitstring({15,16}); // 3 4 ->4
+    size_t det5 = base_det + vb::bitstring({13,15}); // 1 3 ->5
+    size_t det6 = base_det + vb::bitstring({14,16}); // 2 4 ->6
 
     // A state is a set of determinants, determinants are split-up by spin each has to have counter part in the respective sets
     // State {{alpha}{beta}} with {alpha}.size = {beta}.size
 
-    std::vector<size_t> slaters = {det1,det2,det3,det4,det5,det6};
-    vb::State cov {{det1,det2,det3,det4},{det4,det3,det2,det1}};
-    vb::State rad {{det5,det2,det3,det6},{det6,det3,det2,det5}};
-    vb::State covionl {{det5,det3},{det3,det5}};
-    vb::State covionr {{det2,det6},{det6,det2}};
-    vb::State ion1l {{det2},{det2}};  // cross-ion l
-    vb::State ionc {{det2,det3},{det2,det3}};  // cross-ion
-    vb::State ion1r {{det3},{det3}};  //cross-ion r
-    vb::State ion2 {{det1},{det1}};  // midion
-    vb::State ion3 {{det4},{det4}};  // outer-ion
-    std::vector<vb::State> all_states2{cov,rad,ionc,ion2,ion3};
-    std::vector<vb::State> all_states{cov,rad,covionl,covionr,ion2};
-    std::vector<std::string> all_names2{"covalent","radical","cross-ion","middle-ion","outer-ion"};
-    std::vector<std::string> all_names{"covalent","radical","cov-ionl","cov-ionr","mid-ion"};
-    std::ofstream outfile("VB_C4H63.data");
+
+    std::ofstream outfile("VB_cov_breed_fast.data");
     outfile<<std::setprecision(12);
-    bool condition = true;
-    while(condition){
-
-
+    double c = -1.5;
+    double d = -1.5;
+    for(double x =0.5;x<2.5;x+=0.1){
+        for(double y=0.5;y<2.5;y+=0.1){
+            double a = c+x;
+            double b = d+y;
+            double o1 = 4*a*a;
+            double o2 = 4*b*b;
+            double o3 = 4*a*b;
+            double o4 = 4*a*b;
+            double o5 = 2*a+2*a*a*b;
+            double o6 = 2*a+2*a*a*b;
+            double o7 = -(2*a+2*a*a*b);
+            double o8 = -(2*a+2*a*a*b);
+            double o9 = 2*b+2*b*b*a;
+            double o10 = 2*b+2*b*b*a;
+            double o11 = -(2*b+2*b*b*a);
+            double o12 = -(2*b+2*b*b*a);
+            double o13 = 1+2*a*b+a*a*b*b;
+            double o14 = 1+2*a*b+a*a*b*b;
+            double o15 = -(1+2*a*b+a*a*b*b);
+            double o16 = -(1+2*a*b+a*a*b*b);
+            std::vector<double> weights
+                    = {o1,o2,o3,o4,o5,o6,o7,o8,
+                      o9,o10,o11,o12,o13,o14,o15,o16};
+            vb::State cov{{det1,det4,det2,det3,det1,det2,det1,det3,
+                          det2,det4,det3,det4,det1,det4,det2,det3},
+                          {det1,det4,det2,det3,det2,det1,det3,det1,
+                          det4,det2,det4,det3,det4,det1,det3,det2},
+                          weights};
+            vb::SelectiveVB selectiveVB(oei,two_ei,oi,{cov});
+            selectiveVB.orthogonality_set=13;
+            outfile<<a<<"\t"<<b<<"\t"<<selectiveVB.solve()+repulsion<<std::endl;
+        }
     }
     outfile.close();
 }

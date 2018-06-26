@@ -126,17 +126,31 @@ int main() {
 
     // Possible determinants:
 
-    size_t det1 = base_det + vb::bitstring({13,14});
-    size_t det2 = base_det + vb::bitstring({13,16});
-    size_t det3 = base_det + vb::bitstring({14,15});
-    size_t det4 = base_det + vb::bitstring({15,16});
-    size_t det5 = base_det + vb::bitstring({13,15});
-    size_t det6 = base_det + vb::bitstring({14,16});
+    size_t det1 = base_det + vb::bitstring({13,14}); // 1 2 ->1
+    size_t det2 = base_det + vb::bitstring({13,16}); // 1 4 ->2
+    size_t det3 = base_det + vb::bitstring({14,15}); // 2 3 ->3
+    size_t det4 = base_det + vb::bitstring({15,16}); // 3 4 ->4
+    size_t det5 = base_det + vb::bitstring({13,15}); // 1 3 ->5
+    size_t det6 = base_det + vb::bitstring({14,16}); // 2 4 ->6
     std::vector<size_t> slaters = {det1,det2,det3,det4,det5,det6};
-    vb::State cov {{det1,det2,det3,det4},{det4,det3,det2,det1},{-1,1,1,-1}};
+    std::vector<vb::State> all_states = {};
 
-    vb::SelectiveVB selectiveVB(oei,two_ei,oi,{cov});
-    selectiveVB.orthogonality_set = 13;
+    // Found 13 non redundant states?
+
+    all_states.push_back(vb::State{{det1},{det1},{1}}); // 1
+    all_states.push_back(vb::State{{det4},{det4},{1}}); // 2
+    all_states.push_back(vb::State{{det2,det3},{det3,det2},{1,1}}); // 3
+    all_states.push_back(vb::State{{det1,det4},{det4,det1},{1,1}}); // 4
+    all_states.push_back(vb::State{{det1,det3,det1,det2},{det3,det1,det2,det1},{1,1,-1,-1}}); // 5
+    all_states.push_back(vb::State{{det1,det6,det1,det5},{det6,det1,det5,det1},{1,1,-1,-1}}); // 6
+    all_states.push_back(vb::State{{det2,det3},{det2,det3},{1,1}}); // 7
+    all_states.push_back(vb::State{{det2,det5,det6,det3},{det5,det2,det3,det6},{1,1,1,1}}); // 8
+    all_states.push_back(vb::State{{det2,det6,det5,det3},{det6,det2,det3,det5},{1,1,1,1}}); // 9
+    all_states.push_back(vb::State{{det6,det5},{det6,det5},{1,1}}); // 10
+    all_states.push_back(vb::State{{det6,det4,det5,det4},{det4,det6,det4,det5},{1,1,-1,-1}}); // 11
+    all_states.push_back(vb::State{{det6,det5},{det5,det6},{1,1}}); // 12
+    all_states.push_back(vb::State{{det4,det2,det3,det4},{det2,det4,det4,det3},{1,1,-1,-1}}); // 13
+    vb::SelectiveVB selectiveVB(oei,two_ei,oi,all_states);
     std::cout<<std::endl<<" complete pz "<<" : "<<selectiveVB.solve()+repulsion<<std::endl;
-    //igen::VectorXd veck = selectiveVB.get_eigenvectors().col(0);
+    std::cout<<selectiveVB.get_eigenvectors().col(0)<<std::endl;
 }

@@ -11,4 +11,5 @@ foreach(EXECUTABLE_SOURCE ${PROJECT_EXECUTABLE_SOURCE_FILES})
 
     # ... configure (include headers and link libraries) the test ...
     configure_executable(${EXECUTABLE_NAME})
+
 endforeach()

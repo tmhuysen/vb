@@ -1,4 +1,3 @@
-/*
  * Hard-code exe cause i'm lazy
  */
 

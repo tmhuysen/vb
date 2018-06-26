@@ -13,4 +13,3 @@ find_package(hf 3.0.0 REQUIRED)
 # Find the libint integral wrapper (also includes support for integral transformations)
 find_package(libwint 3.0.0 REQUIRED)
 
-

@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE ( H2O_complete_vb_test_output ) {
 }
 
 BOOST_AUTO_TEST_CASE ( was_er_gebreut ) {
-    // Psi4 and GAMESS' FCI energy
+    // generate reference H4
 
     libwint::Molecule H4("../../tests/data/h6.xyz");
     libwint::AOBasis ao_basis(H4,"STO-3G");
