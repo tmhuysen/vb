@@ -166,7 +166,7 @@ int main() {
                           det4,det2,det4,det3,det4,det1,det3,det2},
                           weights};
             vb::SelectiveVB selectiveVB(oei,two_ei,oi,{cov});
-            selectiveVB.orthogonality_set=13;
+            selectiveVB.orthogonality_set=13;  // SUPER IMPORTANT INDICATES THAT THE FIRST 13 electrons in a spin are orthogonal speeds up calculations immensily
             outfile<<a<<"\t"<<b<<"\t"<<selectiveVB.solve()+repulsion<<std::endl;
         }
     }

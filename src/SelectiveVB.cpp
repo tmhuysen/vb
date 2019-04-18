@@ -30,6 +30,7 @@ void SelectiveVB::calculate_matrices() {
                     this->overlap(index_col,index_row)=this->overlap(index_row,index_col);
                     this->hamiltonian(index_col,index_row)=this->hamiltonian(index_row,index_col);
 
+
                 }
             }
         }
@@ -38,12 +39,14 @@ void SelectiveVB::calculate_matrices() {
 }
 
 double SelectiveVB::calculate_overlap(size_t string_state_one, size_t string_state_two) {
+    // Allows skipping of orthogonal calcs
     if(orthogonality_set>0){
         size_t test = string_state_one^string_state_two;
         if(__builtin_ctzl(test)<orthogonality_set && __builtin_ctzl(test) != 0){
             return 0;
         }
     }
+    // overlaps
     double overlaps = 1;
     size_t N = __builtin_popcount(string_state_one);
     Eigen::MatrixXd determinant;

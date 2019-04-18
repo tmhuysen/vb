@@ -136,7 +136,7 @@ int main() {
     // State {{alpha}{beta}} with {alpha}.size = {beta}.size
 
     // Explorative method to find minimum at tigther intervals
-    std::ofstream outfile("VB_cov_breed_tight.data");
+    std::ofstream outfile("VB_cov_breed_tight_2.data");
     outfile<<std::setprecision(12);
     double c = 1.9;
     double d = 1.9;
@@ -169,6 +169,7 @@ int main() {
                           det4,det2,det4,det3,det4,det1,det3,det2},
                           weights};
             vb::SelectiveVB selectiveVB(oei,two_ei,oi,{cov});
+            selectiveVB.orthogonality_set=13;
             outfile<<a<<"\t"<<b<<"\t"<<selectiveVB.solve()+repulsion<<std::endl;
         }
     }
